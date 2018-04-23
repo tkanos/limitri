@@ -7,3 +7,5 @@
     hAxis: {title: "Month"}
 )
 
+- fmt baseline ms/nbrequest + max values ms/nbrequest
+
