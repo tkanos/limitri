@@ -8,4 +8,9 @@
 )
 
 - fmt baseline ms/nbrequest + max values ms/nbrequest
+- Add unit tests
+- print latency
+- do make
+
+
 

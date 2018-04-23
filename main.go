@@ -95,8 +95,9 @@ func main() {
 	}()
 
 	<-c
-	data := graphData(result, *l)
-	graphURL, err := writeLocallyData(string(data), "Avg Time in μs / Request by second")
+	div, valueType := getValueType(result)
+	data := graphData(result, div, *l)
+	graphURL, err := writeLocallyData(string(data), "Avg Time in "+valueType+" / Request by second", valueType)
 
 	fmt.Println("=========================================")
 	fmt.Println()
@@ -108,4 +109,19 @@ func main() {
 
 func stopInformation(conccurentConnection int, thread int, reason string) string {
 	return fmt.Sprintf("Process stop at -c %d -t %d because %s", conccurentConnection, thread, reason)
+}
+
+func getValueType(result []*perf) (float64, string) {
+	var div float64 = 1
+	valueType := "μs"
+	var totalAvg float64 = 0
+	for _, p := range result {
+		totalAvg = totalAvg + p.avg
+	}
+	if (totalAvg / float64(len(result))) > 1000 {
+		div = 1000
+		valueType = "ms"
+	}
+
+	return div, valueType
 }

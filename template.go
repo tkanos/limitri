@@ -42,7 +42,9 @@ var templateHTML = `<html>
                 legend: {
                     position: 'bottom'
 				},
-				interpolateNulls: true
+				interpolateNulls: true,
+				vAxis: {title: "Average in " + {{.Type}}},
+    			hAxis: {title: "Nb Request"}
             };
             // Instantiate and draw our chart, passing in some options.
             var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
@@ -56,7 +58,7 @@ var templateHTML = `<html>
 </body>
 </html>`
 
-func graphData(list []*perf, printlatency bool) []byte {
+func graphData(list []*perf, div float64, printlatency bool) []byte {
 	data := new(bytes.Buffer)
 
 	data.WriteString("[[")
@@ -71,7 +73,7 @@ func graphData(list []*perf, printlatency bool) []byte {
 		data.WriteString("[")
 		data.WriteString(strconv.FormatFloat(p.reqbysec, 'f', 2, 64)) // X
 		data.WriteString(",")
-		data.WriteString(strconv.FormatFloat(p.avg, 'f', 2, 64)) // Y
+		data.WriteString(strconv.FormatFloat((p.avg / div), 'f', 2, 64)) // Y
 		data.WriteString("]")
 
 	}
@@ -80,155 +82,7 @@ func graphData(list []*perf, printlatency bool) []byte {
 	return data.Bytes()
 }
 
-// graphData translate bench results to Google graph JSON structure
-func graphData2(list []*perf, printlatency bool) []byte {
-	data := new(bytes.Buffer)
-
-	data.WriteString("[[")
-	data.WriteString(`"Argument", "Average"`)
-	if printlatency {
-		data.WriteString(`,"50%", "75%", "90%"`)
-		if list[0].perc95 > 0 {
-			data.WriteString(`,"95%"`)
-		}
-		data.WriteString(`,"99%"`)
-	}
-	data.WriteString("],")
-
-	for i, p := range list {
-		if i != 0 {
-			data.WriteString(",")
-		}
-		writeAvgCoordinates(data, p.avg, p.reqbysec, printlatency, p.perc95 != 0)
-		if printlatency {
-			data.WriteString(",")
-			write5OpercentCoordinates(data, p.perc50, p.reqbysec, printlatency, p.perc95 != 0)
-			data.WriteString(",")
-			write75percentCoordinates(data, p.perc75, p.reqbysec, printlatency, p.perc95 != 0)
-			data.WriteString(",")
-			write90percentCoordinates(data, p.perc90, p.reqbysec, printlatency, p.perc95 != 0)
-			data.WriteString(",")
-			write95percentCoordinates(data, p.perc95, p.reqbysec, printlatency, p.perc95 != 0)
-			data.WriteString(",")
-			write99percentCoordinates(data, p.perc99, p.reqbysec, printlatency, p.perc95 != 0)
-		}
-
-	}
-
-	data.WriteString("]")
-
-	return data.Bytes()
-}
-
-// writeAvgCoordinates should write [avg, nbRequest ... ]
-func writeAvgCoordinates(data *bytes.Buffer, avg, nbRequest float64, printlatency, is95 bool) {
-	data.WriteString("[")
-	data.WriteString(strconv.FormatFloat(avg, 'f', 2, 64)) // X
-	data.WriteString(",")
-	data.WriteString(strconv.FormatFloat(nbRequest, 'f', 2, 64)) // Y
-
-	if printlatency {
-		data.WriteString(",null") // 50%
-		data.WriteString(",null") // 75%
-		data.WriteString(",null") // 90%
-		if is95 {
-			data.WriteString(",null") // 95%
-		}
-		data.WriteString(",null") // 99%
-	}
-
-	data.WriteString("]")
-}
-
-// write5OpercentCoordinates should write [avg, null, nbRequest, null ... ]
-func write5OpercentCoordinates(data *bytes.Buffer, avg, nbRequest float64, printlatency, is95 bool) {
-	if printlatency {
-		data.WriteString("[")
-		data.WriteString(strconv.FormatFloat(avg, 'f', 2, 64)) // X
-		data.WriteString(",null")                              // AVG
-		data.WriteString(",")
-		data.WriteString(strconv.FormatFloat(nbRequest, 'f', 2, 64)) // 50%
-		data.WriteString(",null")                                    // 75%
-		data.WriteString(",null")                                    // 90%
-		if is95 {
-			data.WriteString(",null") // 95%
-		}
-		data.WriteString(",null") // 99%
-		data.WriteString("]")
-	}
-}
-
-// write75percentCoordinates should write [avg, null, null, nbRequest, null ... ]
-func write75percentCoordinates(data *bytes.Buffer, avg, nbRequest float64, printlatency, is95 bool) {
-	if printlatency {
-		data.WriteString("[")
-		data.WriteString(strconv.FormatFloat(avg, 'f', 2, 64)) // X
-		data.WriteString(",null")                              // AVG
-		data.WriteString(",null")                              // 50%
-		data.WriteString(",")
-		data.WriteString(strconv.FormatFloat(nbRequest, 'f', 2, 64)) // 75%
-		data.WriteString(",null")                                    // 90%
-		if is95 {
-			data.WriteString(",null") // 95%
-		}
-		data.WriteString(",null") // 99%
-		data.WriteString("]")
-	}
-}
-
-// write90percentCoordinates should write [avg, null, null, null, nbRequest,  ... ]
-func write90percentCoordinates(data *bytes.Buffer, avg, nbRequest float64, printlatency, is95 bool) {
-	if printlatency {
-		data.WriteString("[")
-		data.WriteString(strconv.FormatFloat(avg, 'f', 2, 64)) // X
-		data.WriteString(",null")                              // AVG
-		data.WriteString(",null")                              // 50%
-		data.WriteString(",null")                              // 75%
-		data.WriteString(",")
-		data.WriteString(strconv.FormatFloat(nbRequest, 'f', 2, 64)) // 90%
-		if is95 {
-			data.WriteString(",null") // 95%
-		}
-		data.WriteString(",null") // 99%
-		data.WriteString("]")
-	}
-}
-
-// write95percentCoordinates should write [avg, null, null, null, null, nbRequest,  ... ]
-func write95percentCoordinates(data *bytes.Buffer, avg, nbRequest float64, printlatency, is95 bool) {
-	if printlatency && is95 {
-		data.WriteString("[")
-		data.WriteString(strconv.FormatFloat(avg, 'f', 2, 64)) // X
-		data.WriteString(",null")                              // AVG
-		data.WriteString(",null")                              // 50%
-		data.WriteString(",null")                              // 75%
-		data.WriteString(",null")                              // 90%
-		data.WriteString(",")
-		data.WriteString(strconv.FormatFloat(nbRequest, 'f', 2, 64)) // 95%
-		data.WriteString(",null")                                    // 99%
-		data.WriteString("]")
-	}
-}
-
-// write99percentCoordinates should write [avg, null, ..., nbRequest]
-func write99percentCoordinates(data *bytes.Buffer, avg, nbRequest float64, printlatency, is95 bool) {
-	if printlatency {
-		data.WriteString("[")
-		data.WriteString(strconv.FormatFloat(avg, 'f', 2, 64)) // X
-		data.WriteString(",null")                              // AVG
-		data.WriteString(",null")                              // 50%
-		data.WriteString(",null")                              // 75%
-		data.WriteString(",null")                              // 90%
-		if is95 {
-			data.WriteString(",null") // 95%
-		}
-		data.WriteString(",")
-		data.WriteString(strconv.FormatFloat(nbRequest, 'f', 2, 64)) // 99%
-		data.WriteString("]")
-	}
-}
-
-func writeLocallyData(data, title string) (string, error) {
+func writeLocallyData(data, title, valueType string) (string, error) {
 	t := template.New("limitri Template")
 	t, err := t.Parse(templateHTML)
 	if err != nil {
@@ -243,9 +97,11 @@ func writeLocallyData(data, title string) (string, error) {
 	model := struct {
 		Title string
 		Data  template.JS
+		Type  string
 	}{
 		title,
 		template.JS(data),
+		valueType,
 	}
 
 	err = t.Execute(tmpfile, model)
