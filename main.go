@@ -38,10 +38,19 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
+	fmt.Print("concurrent Connection : ")
+	ticker := time.NewTicker(time.Second * 1)
+	go func() {
+		for range ticker.C {
+			fmt.Print(".")
+		}
+	}()
+
 	concconection := 1
 	duration := fmt.Sprintf("%ds", *d)
 	thread := 1
 	baseLine, err := exec(*url, concconection, thread, duration)
+	fmt.Printf("%d", concconection)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -58,6 +67,7 @@ func main() {
 				thread++
 			}
 			p, err := exec(*url, concconection, 0, duration)
+			fmt.Printf("%d", concconection)
 			if err != nil {
 				break
 			}
@@ -95,10 +105,19 @@ func main() {
 	}()
 
 	<-c
+	ticker.Stop()
+	fmt.Println()
+	if len(result) == 0 {
+		fmt.Println("No result found")
+		os.Exit(-1)
+	}
 	div, valueType := getValueType(result)
 	data := graphData(result, div, *l)
 	graphURL, err := writeLocallyData(string(data), "Avg Time in "+valueType+" / Request by second", valueType)
-
+	max := getMax(result)
+	fmt.Printf("Avg Baseline: %f %s\r\n", result[0].avg/div, valueType)
+	fmt.Printf("Avg Max: %f %s\r\n", max.avg/div, valueType)
+	fmt.Printf("Request Max: %f req/s\r\n", max.reqbysec)
 	fmt.Println("=========================================")
 	fmt.Println()
 	fmt.Println(graphURL)
@@ -124,4 +143,21 @@ func getValueType(result []*perf) (float64, string) {
 	}
 
 	return div, valueType
+}
+
+func getMax(result []*perf) *perf {
+	if len(result) == 1 {
+		return result[0]
+	} else if len(result) == 0 {
+		return nil
+	}
+
+	last := result[len(result)-1]
+	plast := result[len(result)-2]
+
+	if last.reqbysec > plast.reqbysec {
+		return last
+	}
+
+	return plast
 }

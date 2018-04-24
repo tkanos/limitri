@@ -63,6 +63,9 @@ func graphData(list []*perf, div float64, printlatency bool) []byte {
 
 	data.WriteString("[[")
 	data.WriteString(`"Argument", "Average"`)
+	if printlatency {
+		data.WriteString(`,"50%", "75%", "90%", "95%", "99%"`)
+	}
 	data.WriteString("],")
 
 	for i, p := range list {
@@ -71,9 +74,21 @@ func graphData(list []*perf, div float64, printlatency bool) []byte {
 		}
 
 		data.WriteString("[")
-		data.WriteString(strconv.FormatFloat(p.reqbysec, 'f', 2, 64)) // X
+		data.WriteString(strconv.FormatFloat(p.reqbysec, 'f', 2, 64)) // NbRequest (x)
 		data.WriteString(",")
-		data.WriteString(strconv.FormatFloat((p.avg / div), 'f', 2, 64)) // Y
+		data.WriteString(strconv.FormatFloat((p.avg / div), 'f', 2, 64)) // Avg (y)
+		if printlatency {
+			data.WriteString(",")
+			data.WriteString(strconv.FormatFloat((p.perc50 / div), 'f', 2, 64)) // 50% (y)
+			data.WriteString(",")
+			data.WriteString(strconv.FormatFloat((p.perc75 / div), 'f', 2, 64)) // 75% (y)
+			data.WriteString(",")
+			data.WriteString(strconv.FormatFloat((p.perc90 / div), 'f', 2, 64)) // 90% (y)
+			data.WriteString(",")
+			data.WriteString(strconv.FormatFloat((p.perc95 / div), 'f', 2, 64)) // 95% (y)
+			data.WriteString(",")
+			data.WriteString(strconv.FormatFloat((p.perc99 / div), 'f', 2, 64)) // 99% (y)
+		}
 		data.WriteString("]")
 
 	}

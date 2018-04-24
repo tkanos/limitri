@@ -1,5 +1,11 @@
 
 
 TODO 
-- order the requests ? think on the right order
-- null for percentile + link option
+
+- hover : https://stackoverflow.com/questions/7657699/controlling-hover-label-of-data-point-in-google-chart
+
+- Add unit tests
+- do make
+
+
+
