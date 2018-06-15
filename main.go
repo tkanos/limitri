@@ -11,27 +11,17 @@ import (
 
 func main() {
 	url := flag.String("u", "", "The url to test")
-	e := flag.String("e", "", "the executable to choose bombardier|wrk")
 	d := flag.Int("d", 5, "duration in seconds of each requests")
-	l := flag.Bool("l", false, "duration in seconds of each requests")
+	l := flag.Bool("l", false, "show the latency on the output graphic")
 	flag.Parse()
 
-	if *url == "" || *e == "" {
+	if *url == "" {
 		fmt.Println("url not defined")
 		os.Exit(-1)
 	}
 
 	type Exec func(url string, c int, n int, d string) (*perf, error)
-	var exec Exec
-
-	if *e == "bombardier" {
-		exec = bombardier{}.Execute
-	} else if *e == "wrk" {
-
-	} else {
-		fmt.Printf("executable %s not yet implemented\r\n", *e)
-		os.Exit(-1)
-	}
+	var exec Exec = bombardier{}.Execute
 
 	var result []*perf
 
@@ -127,13 +117,13 @@ func main() {
 }
 
 func stopInformation(conccurentConnection int, thread int, reason string) string {
-	return fmt.Sprintf("Process stop at -c %d -t %d because %s", conccurentConnection, thread, reason)
+	return fmt.Sprintf("\nProcess stop at -c %d -t %d because %s", conccurentConnection, thread, reason)
 }
 
 func getValueType(result []*perf) (float64, string) {
 	var div float64 = 1
 	valueType := "μs"
-	var totalAvg float64 = 0
+	var totalAvg float64
 	for _, p := range result {
 		totalAvg = totalAvg + p.avg
 	}
