@@ -55,6 +55,8 @@ func main() {
 			concconection++
 			if thread < 13 {
 				thread++
+			} else {
+				concconection = concconection + 50
 			}
 			p, err := exec(*url, concconection, 0, duration)
 			fmt.Printf("%d", concconection)
