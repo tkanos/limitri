@@ -13,6 +13,8 @@ func main() {
 	url := flag.String("u", "", "The url to test")
 	d := flag.Int("d", 5, "duration in seconds of each requests")
 	l := flag.Bool("l", false, "show the latency on the output graphic")
+	m := flag.String("m", "GET", "method GET/POST?PUT/DELETE")
+	b := flag.String("b", "", "Body")
 	flag.Parse()
 
 	if *url == "" {
@@ -20,7 +22,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	type Exec func(url string, c int, n int, d string) (*perf, error)
+	type Exec func(url string, c int, n int, duration string, method string, body string) (*perf, error)
 	var exec Exec = bombardier{}.Execute
 
 	var result []*perf
@@ -39,7 +41,7 @@ func main() {
 	concconection := 1
 	duration := fmt.Sprintf("%ds", *d)
 	thread := 1
-	baseLine, err := exec(*url, concconection, thread, duration)
+	baseLine, err := exec(*url, concconection, thread, duration, *m, *b)
 	fmt.Printf("%d", concconection)
 	if err != nil {
 		fmt.Println(err)
@@ -58,7 +60,7 @@ func main() {
 			} else {
 				concconection = concconection + 50
 			}
-			p, err := exec(*url, concconection, 0, duration)
+			p, err := exec(*url, concconection, 0, duration, *m, *b)
 			fmt.Printf("%d", concconection)
 			if err != nil {
 				break

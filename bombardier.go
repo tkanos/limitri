@@ -53,10 +53,10 @@ Flags:
 Args:
   <url>  Target's URL
 */
-// Execute bombardier -c {c} -d {d} -l -o j url
-func (b bombardier) Execute(url string, c int, n int, d string) (*perf, error) {
+// Execute bombardier -c {c} -d {duration} -m {method} -b {body} -l -o j url
+func (b bombardier) Execute(url string, c int, n int, duration string, method string, body string) (*perf, error) {
 	//o, err := exec.Command("bombardier", "-c", strconv.Itoa(c), "-d", d, "-l", "-o", "j", url).Output()
-	o, err := exec.Command("bombardier", "-c", strconv.Itoa(c), "-d", d, "-l", "-o", "j", url).Output()
+	o, err := exec.Command("bombardier", "-c", strconv.Itoa(c), "-d", duration, "-m", method, "-b", body, "-l", "-o", "j", url).Output()
 	if err != nil {
 		return nil, err
 	}

@@ -14,12 +14,15 @@ for more documentation : https://github.com/codesenberg/bombardier
 
 ```bash
 Usage of limitri: limitri -u <url> 
-  -u string (mandatory)
-        The url to test
-
+   -b string
+        Body
   -d int
         duration in seconds of each requests (default 5)
   -l    show the latency on the output graphic
+  -m string
+        method GET/POST?PUT/DELETE (default "GET")
+  -u string
+        The url to test
   
 ```
 
