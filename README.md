@@ -1,5 +1,7 @@
 # Limitri
 
+(Project in alpha phase)
+
 Benchmark and test the limit of your program.
 
 Limitri uses bombardier (so it should be installed) to perform the benchmark tests.
